@@ -71,9 +71,34 @@ fi
 if [ ! -f "amplify/.config/project-config.json" ]; then
     echo "🔧 首次部署，正在初始化 Amplify..."
     echo "📋 將使用 AWS Profile: $AWS_PROFILE"
-    amplify init
+    
+    # 自動化 Amplify 初始化
+    amplify init \
+      --appId $(uuidgen) \
+      --envName dev \
+      --yes \
+      --amplify "{\"envName\":\"dev\",\"defaultEditor\":\"code\"}" \
+      --providers "{\"awscloudformation\":{\"configLevel\":\"project\",\"useProfile\":true,\"profileName\":\"$AWS_PROFILE\"}}"
+    
+    echo "✅ Amplify 初始化完成"
 else
     echo "✅ Amplify 已初始化"
+fi
+
+# 檢查是否已經設定 hosting
+if [ ! -f "amplify/backend/hosting/amplifyhosting/amplifyhosting-template.json" ]; then
+    echo "🌐 設定靜態網頁 Hosting..."
+    
+    # 自動化 hosting 設定
+    amplify add hosting \
+      --yes \
+      --hostingType manual \
+      --app-type static \
+      --framework none
+    
+    echo "✅ Hosting 設定完成"
+else
+    echo "✅ Hosting 已設定"
 fi
 
 # 設定固定自訂域名
@@ -83,10 +108,32 @@ echo "🌐 使用自訂域名: $CUSTOM_DOMAIN"
 export AMPLIFY_CUSTOM_DOMAIN=$CUSTOM_DOMAIN
 
 echo ""
+echo "🔨 準備部署文件..."
+
+# 執行構建腳本
+if [ -f "script/build.sh" ]; then
+    echo "📦 執行構建腳本..."
+    ./script/build.sh
+else
+    echo "📂 沒有找到構建腳本，手動創建 dist 目錄..."
+    mkdir -p dist
+    cp -r src/* dist/
+    echo "✅ 檔案已複製到 dist 目錄"
+fi
+
+# 檢查 dist 目錄
+if [ ! -d "dist" ]; then
+    echo "❌ dist 目錄不存在，部署失敗"
+    exit 1
+fi
+
+echo ""
 echo "🚀 開始部署..."
 
-# 執行部署
-amplify publish --yes
+# 執行部署，指定 dist 目錄
+amplify publish \
+  --yes \
+  --path dist
 
 # 顯示自訂域名資訊
 echo ""

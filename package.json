@@ -1,0 +1,27 @@
+{
+  "name": "htmlgames",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "five-server --port=3000 --open=/src/",
+    "dev": "five-server --port=3000 --open=/src/",
+    "serve": "serve -s src -l 3000",
+    "deploy": "./quick-deploy.sh",
+    "deploy:amplify": "AWS_PROFILE=shedoh AWS_DEFAULT_REGION=ap-northeast-1 amplify publish --yes",
+    "deploy:init": "AWS_PROFILE=shedoh AWS_DEFAULT_REGION=ap-northeast-1 amplify init --awsprofile shedoh --yes",
+    "deploy:status": "AWS_PROFILE=shedoh AWS_DEFAULT_REGION=ap-northeast-1 amplify status",
+    "deploy:console": "AWS_PROFILE=shedoh AWS_DEFAULT_REGION=ap-northeast-1 amplify console",
+    "deploy:delete": "AWS_PROFILE=shedoh AWS_DEFAULT_REGION=ap-northeast-1 amplify delete --yes",
+    "domain:add": "AWS_PROFILE=shedoh AWS_DEFAULT_REGION=ap-northeast-1 amplify add hosting",
+    "domain:status": "AWS_PROFILE=shedoh AWS_DEFAULT_REGION=ap-northeast-1 amplify status hosting",
+    "domain:console": "echo '🔗 開啟 Amplify 控制台進行域名管理：'; echo 'https://ap-northeast-1.console.aws.amazon.com/amplify/home?region=ap-northeast-1'",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Patrick",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "five-server": "^0.4.4",
+    "serve": "^14.2.4"
+  }
+}

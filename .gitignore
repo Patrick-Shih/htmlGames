@@ -1,0 +1,10 @@
+#amplify-do-not-edit-begin
+amplify/*
+build/
+dist/
+node_modules/
+aws-exports.js
+awsconfiguration.json
+.secret-*
+**.sample
+#amplify-do-not-edit-end

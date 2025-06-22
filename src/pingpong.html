@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>乒乓球對戰遊戲</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        font-family: "Arial", sans-serif;
+      }
+
+      .game-container {
+        text-align: center;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        padding: 20px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        color: white;
+        margin-bottom: 20px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      canvas {
+        background: #000;
+        border: 3px solid #fff;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        transform: translateZ(0);
+        will-change: transform;
+      }
+
+      .score {
+        color: white;
+        font-size: 24px;
+        margin: 20px 0;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+      }
+
+      .controls {
+        color: white;
+        margin-top: 15px;
+        font-size: 14px;
+      }
+
+      .game-over {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+      }
+
+      .game-over-content {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 40px;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        border: 3px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        max-width: 400px;
+        animation: gameOverSlideIn 0.5s ease-out;
+      }
+
+      .game-over-title {
+        color: #ffff00;
+        font-size: 32px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+      }
+
+      .game-over-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 20px;
+      }
+
+      @keyframes gameOverSlideIn {
+        from {
+          opacity: 0;
+          transform: scale(0.8) translateY(-50px);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1) translateY(0);
+        }
+      }
+
+      button {
+        background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 25px;
+        cursor: pointer;
+        font-size: 16px;
+        margin: 10px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+      }
+
+      .fps-counter {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        color: #00ff00;
+        font-size: 12px;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 5px;
+        border-radius: 3px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="game-container">
+      <h1>🏓 乒乓球對戰遊戲</h1>
+      <div class="score">
+        玩家：
+        <span id="playerScore">0</span>
+        ｜電腦：
+        <span id="computerScore">0</span>
+      </div>
+      <div class="controls" style="margin-bottom: 15px">
+        <label style="color: white; margin-right: 10px; font-size: 14px"
+          >難度：</label
+        >
+        <label style="color: white; margin-right: 10px">
+          <input
+            type="radio"
+            name="difficulty"
+            value="1"
+            style="margin-right: 3px"
+          />
+          1
+        </label>
+        <label style="color: white; margin-right: 10px">
+          <input
+            type="radio"
+            name="difficulty"
+            value="2"
+            style="margin-right: 3px"
+          />
+          2
+        </label>
+        <label style="color: white; margin-right: 10px">
+          <input
+            type="radio"
+            name="difficulty"
+            value="3"
+            checked
+            style="margin-right: 3px"
+          />
+          3
+        </label>
+        <label style="color: white; margin-right: 10px">
+          <input
+            type="radio"
+            name="difficulty"
+            value="4"
+            style="margin-right: 3px"
+          />
+          4
+        </label>
+        <label style="color: white">
+          <input
+            type="radio"
+            name="difficulty"
+            value="5"
+            style="margin-right: 3px"
+          />
+          5
+        </label>
+        <label style="color: white; margin-right: 10px">
+          <input
+            type="radio"
+            name="difficulty"
+            value="6"
+            style="margin-right: 3px"
+          />
+          6
+        </label>
+        <label style="color: white; margin-right: 10px">
+          <input
+            type="radio"
+            name="difficulty"
+            value="7"
+            style="margin-right: 3px"
+          />
+          7
+        </label>
+        <label style="color: white">
+          <input
+            type="radio"
+            name="difficulty"
+            value="8"
+            style="margin-right: 3px"
+          />
+          8
+        </label>
+      </div>
+      <div style="position: relative">
+        <canvas id="gameCanvas" width="800" height="400"></canvas>
+        <div
+          id="fpsCounter"
+          style="
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #00ff00;
+            font-size: 12px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 5px;
+            border-radius: 3px;
+            z-index: 10;
+          "
+        >
+          FPS: 60
+        </div>
+      </div>
+      <div class="controls">
+        使用 ← → 方向鍵控制你的橫桿移動
+        <br />
+        按
+        <strong>空白鍵</strong>
+        發球或在球接近時加速
+        <br />
+      </div>
+      <div
+        id="servingStatus"
+        class="controls"
+        style="
+          color: #ffff00;
+          font-size: 16px;
+          font-weight: bold;
+          height: 25px;
+          line-height: 25px;
+        "
+      ></div>
+      <div
+        id="boostStatus"
+        class="controls"
+        style="
+          color: #ff6b6b;
+          font-size: 14px;
+          font-weight: bold;
+          height: 20px;
+          line-height: 20px;
+        "
+      ></div>
+      <div id="gameStatus" class="game-over" style="display: none">
+        <div class="game-over-content">
+          <div id="gameStatusTitle" class="game-over-title"></div>
+          <div class="game-over-buttons">
+            <button id="restartBtn" onclick="restartGame()">重新開始</button>
+            <button onclick="window.location.href='index.html'">
+              🏠 返回遊戲選單
+            </button>
+          </div>
+        </div>
+      </div>
+      <button
+        onclick="window.location.href='index.html'"
+        style="margin-top: 10px"
+      >
+        🏠 返回遊戲選單
+      </button>
+    </div>
+
+    <script>
+      const canvas = document.getElementById("gameCanvas");
+      const ctx = canvas.getContext("2d");
+      const playerScoreElement = document.getElementById("playerScore");
+      const computerScoreElement = document.getElementById("computerScore");
+      const gameStatusElement = document.getElementById("gameStatus");
+      const gameStatusTitleElement = document.getElementById("gameStatusTitle");
+      const servingStatusElement = document.getElementById("servingStatus");
+      const boostStatusElement = document.getElementById("boostStatus");
+      const fpsCounterElement = document.getElementById("fpsCounter");
+      const restartBtn = document.getElementById("restartBtn");
+
+      // 遊戲狀態
+      let gameRunning = true;
+      let playerScore = 0;
+      let computerScore = 0;
+      let waitingForServe = true;
+      let serverIsPlayer = true; // true = 玩家發球, false = 電腦發球
+      let gamePaused = false; // 遊戲是否暫停（得分後）
+      let canStartNextRound = false; // 是否可以開始下一局
+      let pauseStartTime = 0; // 暫停開始時間
+      let ballBoosted = false; // 球是否被加速
+      let boostMultiplier = 1.8; // 加速倍數（1.8倍）
+      let boostByPlayer = false; // 追蹤是誰加速了球（true=玩家，false=電腦）
+      let difficultyMode = "easy"; // 難度模式
+      let boostParticles = []; // 加速粒子效果
+
+      // 橫桿擊球動畫相關變數
+      let playerPaddleAnimating = false; // 玩家橫桿是否正在動畫
+      let computerPaddleAnimating = false; // 電腦橫桿是否正在動畫
+      let playerPaddleOriginalY = 0; // 玩家橫桿原始Y位置
+      let computerPaddleOriginalY = 0; // 電腦橫桿原始Y位置
+      let paddleAnimationProgress = 0; // 動畫進度 (0-1)
+      const PADDLE_ANIMATION_SPEED = 0.15; // 動畫速度
+      const PADDLE_ANIMATION_DISTANCE = 15; // 移動距離
+
+      // 固定時間步長控制
+      let lastTime = 0;
+      let accumulator = 0;
+      const FIXED_TIMESTEP = 1000 / 60; // 60fps = 16.67ms per frame
+      const MAX_FRAME_TIME = 1000 / 30; // 最大幀時間，防止螺旋死亡
+
+      // FPS計算
+      let frameCount = 0;
+      let fpsTime = 0;
+      let currentFPS = 60;
+
+      // 玩家橫桿 (底部)
+      const player = {
+        x: canvas.width / 2 - 60,
+        y: canvas.height - 20,
+        width: 120,
+        height: 15,
+        speed: 6 * (FIXED_TIMESTEP / 1000) * 60, // 轉換為每秒像素
+        color: "#00ff00",
+      };
+
+      // 電腦橫桿 (頂部)
+      const computer = {
+        x: canvas.width / 2 - 60,
+        y: 5,
+        width: 120,
+        height: 15,
+        speed: 3 * (FIXED_TIMESTEP / 1000) * 60,
+        color: "#ff0040",
+      };
+
+      // 儲存橫桿原始Y位置
+      playerPaddleOriginalY = player.y;
+      computerPaddleOriginalY = computer.y;
+
+      // 球
+      const ball = {
+        x: canvas.width / 2,
+        y: canvas.height - 40, // 初始位置在玩家橫桿附近
+        radius: 10,
+        speedX: 0,
+        speedY: 0,
+        color: "#ffffff",
+      };
+
+      // 按鍵狀態
+      const keys = {
+        left: false,
+        right: false,
+      };
+
+      // 獲取難度設定
+      function getDifficulty() {
+        const radios = document.querySelectorAll('input[name="difficulty"]');
+        for (let radio of radios) {
+          if (radio.checked) {
+            return parseInt(radio.value);
+          }
+        }
+        return 3; // 預設難度3
+      }
+
+      // 禁用/啟用難度選擇
+      function setDifficultyEnabled(enabled) {
+        const radios = document.querySelectorAll('input[name="difficulty"]');
+        radios.forEach((radio) => {
+          radio.disabled = !enabled;
+        });
+      }
+
+      // 根據難度獲取電腦設定
+      function getComputerSettings(difficulty) {
+        const settings = {
+          1: { speed: 3, boostChance: 0, offsetChance: 0, maxOffsetPercent: 0 },
+          2: {
+            speed: 4,
+            boostChance: 0,
+            offsetChance: 0.2,
+            maxOffsetPercent: 0.3,
+          },
+          3: {
+            speed: 5,
+            boostChance: 0.1,
+            offsetChance: 0.3,
+            maxOffsetPercent: 0.5,
+          },
+          4: {
+            speed: 6,
+            boostChance: 0.2,
+            offsetChance: 0.4,
+            maxOffsetPercent: 0.6,
+          },
+          5: {
+            speed: 6,
+            boostChance: 0.3,
+            offsetChance: 0.5,
+            maxOffsetPercent: 0.7,
+          },
+          6: {
+            speed: 6,
+            boostChance: 0.4,
+            offsetChance: 0.6,
+            maxOffsetPercent: 0.8,
+          },
+          7: {
+            speed: 7,
+            boostChance: 0.6,
+            offsetChance: 0.7,
+            maxOffsetPercent: 0.9,
+          },
+          8: {
+            speed: 8,
+            boostChance: 0.8,
+            offsetChance: 0.8,
+            maxOffsetPercent: 1,
+          },
+        };
+        return settings[difficulty] || settings[3];
+      }
+
+      // 檢查是否可以加速
+      function canBoost() {
+        if (!gameRunning) return false;
+
+        // 檢查球是否接近玩家橫桿
+        const distanceToPlayer = Math.abs(ball.y - player.y);
+        const ballMovingToPlayer = ball.speedY > 0;
+
+        return ballMovingToPlayer && distanceToPlayer < 30;
+      }
+
+      // 啟動玩家橫桿動畫
+      function startPlayerPaddleAnimation() {
+        if (!playerPaddleAnimating) {
+          playerPaddleAnimating = true;
+          paddleAnimationProgress = 0;
+        }
+      }
+
+      // 啟動電腦橫桿動畫
+      function startComputerPaddleAnimation() {
+        if (!computerPaddleAnimating) {
+          computerPaddleAnimating = true;
+          paddleAnimationProgress = 0;
+        }
+      }
+
+      // 更新橫桿動畫
+      function updatePaddleAnimations() {
+        if (playerPaddleAnimating || computerPaddleAnimating) {
+          paddleAnimationProgress += PADDLE_ANIMATION_SPEED;
+
+          if (paddleAnimationProgress >= 1) {
+            // 動畫結束，恢復原始位置
+            paddleAnimationProgress = 0;
+            playerPaddleAnimating = false;
+            computerPaddleAnimating = false;
+            player.y = playerPaddleOriginalY;
+            computer.y = computerPaddleOriginalY;
+          } else {
+            // 計算動畫位置
+            // 使用 sin 函數製造平滑的來回動畫
+            const animationOffset =
+              Math.sin(paddleAnimationProgress * Math.PI) *
+              PADDLE_ANIMATION_DISTANCE;
+
+            if (playerPaddleAnimating) {
+              // 玩家橫桿往上移動（負方向）
+              player.y = playerPaddleOriginalY - animationOffset;
+            }
+
+            if (computerPaddleAnimating) {
+              // 電腦橫桿往下移動（正方向）
+              computer.y = computerPaddleOriginalY + animationOffset;
+            }
+          }
+        }
+      }
+
+      // 創建加速粒子效果
+      function createBoostParticles(x, y) {
+        for (let i = 0; i < 15; i++) {
+          boostParticles.push({
+            x: x + (Math.random() - 0.5) * 30,
+            y: y + (Math.random() - 0.5) * 30,
+            vx: (Math.random() - 0.5) * 8,
+            vy: (Math.random() - 0.5) * 8,
+            life: 30,
+            maxLife: 30,
+            color: `hsl(${Math.random() * 60 + 320}, 100%, ${
+              50 + Math.random() * 30
+            }%)`,
+          });
+        }
+      }
+
+      // 更新和繪製粒子效果
+      function updateAndDrawParticles() {
+        boostParticles = boostParticles.filter((particle) => {
+          particle.x += particle.vx;
+          particle.y += particle.vy;
+          particle.vx *= 0.95;
+          particle.vy *= 0.95;
+          particle.life--;
+
+          const alpha = particle.life / particle.maxLife;
+          ctx.globalAlpha = alpha;
+          ctx.fillStyle = particle.color;
+          ctx.beginPath();
+          ctx.arc(particle.x, particle.y, 2 + alpha * 2, 0, Math.PI * 2);
+          ctx.fill();
+
+          return particle.life > 0;
+        });
+        ctx.globalAlpha = 1;
+      }
+
+      // 玩家加速球
+      function boostBall() {
+        if (!canBoost()) return false;
+
+        ballBoosted = true;
+        boostByPlayer = true; // 玩家加速
+
+        // 計算當前速度大小
+        const currentSpeed = Math.sqrt(
+          ball.speedX * ball.speedX + ball.speedY * ball.speedY
+        );
+        const boostedSpeed = currentSpeed * boostMultiplier;
+
+        // 計算提前擊球的反彈角度（模擬碰到橫桿的效果）
+        const paddleCenterX = player.x + player.width / 2;
+        const relativeHitX = ball.x - paddleCenterX;
+        const normalizedHit = Math.max(
+          -1,
+          Math.min(1, relativeHitX / (player.width / 2))
+        ); // 限制在-1到1之間
+
+        // 根據半橢圓形狀計算反彈角度
+        const bounceAngle = (normalizedHit * Math.PI) / 3; // 最大60度角
+
+        // 立即改變球的方向和速度（向上彈）
+        ball.speedX = Math.sin(bounceAngle) * boostedSpeed;
+        ball.speedY = -Math.cos(bounceAngle) * boostedSpeed; // 確保向上彈
+
+        // 創建粒子效果
+        createBoostParticles(ball.x, ball.y);
+
+        boostStatusElement.textContent = "⚡ 你提前擊球加速！";
+        setTimeout(() => {
+          if (boostStatusElement.textContent === "⚡ 你提前擊球加速！") {
+            boostStatusElement.textContent = "";
+          }
+        }, 1500);
+
+        return true;
+      }
+
+      // 鍵盤事件監聽
+      document.addEventListener("keydown", (e) => {
+        switch (e.key) {
+          case "ArrowLeft":
+            keys.left = true;
+            e.preventDefault();
+            break;
+          case "ArrowRight":
+            keys.right = true;
+            e.preventDefault();
+            break;
+          case " ":
+            if (waitingForServe && serverIsPlayer && gameRunning) {
+              serveBall();
+            } else if (gamePaused && canStartNextRound) {
+              // 開始下一局
+              startNextRound();
+            } else if (!playerPaddleAnimating) {
+              // 只有在沒有動畫進行時才能擊球
+              startPlayerPaddleAnimation();
+              if (canBoost()) {
+                boostBall();
+              }
+            }
+            e.preventDefault();
+            break;
+        }
+      });
+
+      document.addEventListener("keyup", (e) => {
+        switch (e.key) {
+          case "ArrowLeft":
+            keys.left = false;
+            break;
+          case "ArrowRight":
+            keys.right = false;
+            break;
+        }
+      });
+
+      // 繪製橫桿
+      function drawPaddle(paddle) {
+        const centerX = paddle.x + paddle.width / 2;
+        const centerY = paddle.y + paddle.height / 2;
+        const radiusX = paddle.width / 2;
+        const radiusY = paddle.height;
+
+        ctx.fillStyle = paddle.color;
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 2;
+
+        // 繪製半橢圓形橫桿
+        ctx.beginPath();
+
+        if (paddle === player) {
+          // 玩家橫桿（底部）- 上半部為弧形
+          ctx.ellipse(
+            centerX,
+            paddle.y + paddle.height,
+            radiusX,
+            radiusY,
+            0,
+            Math.PI,
+            0
+          );
+          ctx.lineTo(paddle.x, paddle.y + paddle.height);
+          ctx.closePath();
+        } else {
+          // 電腦橫桿（頂部）- 下半部為弧形
+          ctx.ellipse(centerX, paddle.y, radiusX, radiusY, 0, 0, Math.PI);
+          ctx.lineTo(paddle.x, paddle.y);
+          ctx.closePath();
+        }
+
+        ctx.fill();
+        ctx.stroke();
+      }
+
+      // 繪製球
+      function drawBall() {
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+
+        if (ballBoosted) {
+          // 加速球變成亮橙色
+          ctx.fillStyle = "#ff8c00"; // 亮橙色
+          ctx.shadowColor = "#ff8c00";
+          ctx.shadowBlur = 15;
+        } else {
+          // 普通球是白色
+          ctx.fillStyle = ball.color;
+          ctx.shadowColor = ball.color;
+          ctx.shadowBlur = 10;
+        }
+
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+
+      // 更新玩家橫桿位置
+      function updatePlayer() {
+        if (keys.left && player.x > 0) {
+          player.x -= player.speed;
+        }
+        if (keys.right && player.x < canvas.width - player.width) {
+          player.x += player.speed;
+        }
+      }
+
+      // 電腦期望擊球點相關變數
+      let computerTargetHitPoint = null; // 電腦的期望擊球點（相對於橫桿中心的偏移）
+      let computerInDefensePhase = false; // 是否處於防守階段（玩家擊球到電腦擊球）
+
+      // 更新電腦橫桿位置 (AI)
+      function updateComputer() {
+        const difficulty = getDifficulty();
+        const computerSettings = getComputerSettings(difficulty);
+
+        // 轉換速度為每幀像素
+        computer.speed = computerSettings.speed * (FIXED_TIMESTEP / 1000) * 60;
+
+        const paddleCenter = computer.x + computer.width / 2;
+        const ballCenter = ball.x;
+
+        // 判斷當前階段：球是否正朝電腦移動
+        const ballMovingToComputer = ball.speedY < 0; // 負數表示往上移動（朝電腦）
+        const ballMovingToPlayer = ball.speedY > 0; // 正數表示往下移動（朝玩家）
+
+        // 階段1：電腦剛擊球，球朝玩家移動 - 重置期望擊球點，用中心點追球
+        if (ballMovingToPlayer && computerInDefensePhase) {
+          computerInDefensePhase = false;
+          computerTargetHitPoint = null; // 重置期望擊球點
+        }
+
+        // 階段2：玩家擊球，球朝電腦移動 - 設定期望擊球點並保持
+        if (ballMovingToComputer && !computerInDefensePhase) {
+          computerInDefensePhase = true;
+
+          // 根據難度決定是否偏離中心點
+          computerTargetHitPoint = 0; // 預設使用中心點
+
+          if (difficulty >= 2) {
+            // 偏離中心點的機率隨難度增加
+            if (Math.random() < computerSettings.offsetChance) {
+              // 決定偏移方向和幅度
+              const maxOffset = Math.min(
+                (computerSettings.maxOffsetPercent * computer.width) / 2,
+                computer.width / 2 - 1
+              ); // 最大偏移量
+
+              if (difficulty >= 7) {
+                // 高難度：戰術性偏移 - 優先選擇遠離玩家的一側
+                const playerCenter = player.x + player.width / 2;
+                const ballToPlayerDistance = Math.abs(
+                  ballCenter - playerCenter
+                );
+
+                if (ballToPlayerDistance > 20) {
+                  // 只有當球離玩家中心較遠時才使用戰術
+                  if (ballCenter > playerCenter) {
+                    // 球在玩家右側，電腦用右邊擊球
+                    computerTargetHitPoint =
+                      Math.random() * maxOffset * 0.8 + maxOffset * 0.2;
+                  } else {
+                    // 球在玩家左側，電腦用左邊擊球
+                    computerTargetHitPoint = -(
+                      Math.random() * maxOffset * 0.8 +
+                      maxOffset * 0.2
+                    );
+                  }
+                } else {
+                  // 隨機偏移
+                  computerTargetHitPoint =
+                    (Math.random() - 0.5) * 2 * maxOffset;
+                }
+              } else {
+                // 中低難度：隨機偏移
+                computerTargetHitPoint = (Math.random() - 0.5) * 2 * maxOffset;
+              }
+
+              // 確保偏移不會讓電腦橫桿超出畫面
+              const futureHitX = ballCenter + computerTargetHitPoint;
+              const paddleHalfWidth = computer.width / 2;
+
+              if (futureHitX - paddleHalfWidth < 0) {
+                computerTargetHitPoint = paddleHalfWidth - ballCenter;
+              } else if (futureHitX + paddleHalfWidth > canvas.width) {
+                computerTargetHitPoint =
+                  canvas.width - paddleHalfWidth - ballCenter;
+              }
+            }
+          }
+        }
+
+        // 計算目標位置
+        let targetX;
+        if (computerInDefensePhase && computerTargetHitPoint !== null) {
+          // 防守階段：使用期望擊球點
+          targetX = ballCenter + computerTargetHitPoint;
+        } else {
+          // 非防守階段：使用橫桿中心追球
+          targetX = ballCenter;
+        }
+
+        // 移動電腦橫桿
+        const tolerance = difficulty >= 4 ? 3 : 8; // 高難度更精確
+
+        if (
+          paddleCenter < targetX - tolerance &&
+          computer.x < canvas.width - computer.width
+        ) {
+          computer.x += computer.speed;
+        } else if (paddleCenter > targetX + tolerance && computer.x > 0) {
+          computer.x -= computer.speed;
+        }
+
+        // 電腦AI加速邏輯
+        if (
+          computerSettings.boostChance > 0 &&
+          !ballBoosted &&
+          !waitingForServe
+        ) {
+          const distanceToComputer = Math.abs(
+            ball.y - (computer.y + computer.height)
+          );
+          const ballMovingToComputer = ball.speedY < 0;
+
+          if (ballMovingToComputer && distanceToComputer < 30) {
+            if (Math.random() < computerSettings.boostChance) {
+              ballBoosted = true;
+              boostByPlayer = false;
+
+              const currentSpeed = Math.sqrt(
+                ball.speedX * ball.speedX + ball.speedY * ball.speedY
+              );
+              const boostedSpeed = currentSpeed * boostMultiplier;
+
+              const paddleCenterX = computer.x + computer.width / 2;
+              const relativeHitX = ball.x - paddleCenterX;
+              const normalizedHit = Math.max(
+                -1,
+                Math.min(1, relativeHitX / (computer.width / 2))
+              );
+              const bounceAngle = (normalizedHit * Math.PI) / 3;
+
+              ball.speedX = Math.sin(bounceAngle) * boostedSpeed;
+              ball.speedY = Math.cos(bounceAngle) * boostedSpeed;
+
+              createBoostParticles(ball.x, ball.y);
+              startComputerPaddleAnimation(); // 啟動電腦橫桿動畫
+              boostStatusElement.textContent = `🤖 電腦提前擊球加速！(難度${difficulty})`;
+              setTimeout(() => {
+                if (
+                  boostStatusElement.textContent.includes(
+                    "🤖 電腦提前擊球加速！"
+                  )
+                ) {
+                  boostStatusElement.textContent = "";
+                }
+              }, 1500);
+            }
+          }
+        }
+      }
+
+      // 發球函數
+      function serveBall() {
+        waitingForServe = false;
+
+        // 第一次發球時禁用難度選擇
+        if (playerScore === 0 && computerScore === 0) {
+          setDifficultyEnabled(false);
+        }
+
+        if (serverIsPlayer) {
+          // 玩家發球
+          ball.x = player.x + player.width / 2;
+          ball.y = player.y - ball.radius - 5;
+          ball.speedX = (Math.random() - 0.5) * 4; // 隨機左右角度
+          ball.speedY = -5; // 向上發球
+        } else {
+          // 電腦發球
+          ball.x = computer.x + computer.width / 2;
+          ball.y = computer.y + computer.height + ball.radius + 5;
+          ball.speedX = (Math.random() - 0.5) * 4; // 隨機左右角度
+          ball.speedY = 5; // 向下發球
+        }
+
+        updateServingStatus();
+      }
+
+      // 更新發球狀態顯示
+      function updateServingStatus() {
+        if (waitingForServe && gameRunning) {
+          if (serverIsPlayer) {
+            servingStatusElement.textContent = "🏓 輪到你發球！按空白鍵發球";
+          } else {
+            servingStatusElement.textContent = "🤖 電腦準備發球...";
+            // 電腦自動發球（延遲1秒）
+            setTimeout(() => {
+              if (waitingForServe && !serverIsPlayer) {
+                serveBall();
+              }
+            }, 1000);
+          }
+        } else {
+          servingStatusElement.textContent = "";
+        }
+      }
+
+      // 更新球的位置
+      function updateBall() {
+        if (waitingForServe) {
+          // 發球準備階段，球跟著發球方橫桿移動
+          if (serverIsPlayer) {
+            ball.x = player.x + player.width / 2;
+            ball.y = player.y - ball.radius - 5;
+          } else {
+            ball.x = computer.x + computer.width / 2;
+            ball.y = computer.y + computer.height + ball.radius + 5;
+          }
+          return;
+        }
+
+        ball.x += ball.speedX;
+        ball.y += ball.speedY;
+
+        // 左右邊界碰撞
+        if (ball.x <= ball.radius) {
+          ball.x = ball.radius; // 確保球不會超出左邊界
+          ball.speedX = Math.abs(ball.speedX); // 確保向右彈
+        } else if (ball.x >= canvas.width - ball.radius) {
+          ball.x = canvas.width - ball.radius; // 確保球不會超出右邊界
+          ball.speedX = -Math.abs(ball.speedX); // 確保向左彈
+        }
+
+        // 與橫桿碰撞檢測
+        // 玩家橫桿碰撞（半橢圓形）
+        if (
+          ball.y + ball.radius >= player.y &&
+          ball.y - ball.radius <= player.y + player.height &&
+          ball.x >= player.x &&
+          ball.x <= player.x + player.width
+        ) {
+          // 計算碰撞點相對於橫桿中心的位置
+          const paddleCenterX = player.x + player.width / 2;
+          const relativeHitX = ball.x - paddleCenterX;
+          const normalizedHit = relativeHitX / (player.width / 2); // -1 到 1
+
+          // 根據半橢圓形狀計算反彈角度
+          const bounceAngle = (normalizedHit * Math.PI) / 3; // 最大60度角
+          const speed = Math.sqrt(
+            ball.speedX * ball.speedX + ball.speedY * ball.speedY
+          );
+
+          ball.speedX = Math.sin(bounceAngle) * speed;
+          ball.speedY = -Math.cos(bounceAngle) * speed; // 確保向上彈
+
+          // 只有當球是電腦加速的時候，玩家碰到才恢復速度
+          if (ballBoosted && !boostByPlayer) {
+            // 計算當前速度並恢復到正常速度
+            const currentSpeed = Math.sqrt(
+              ball.speedX * ball.speedX + ball.speedY * ball.speedY
+            );
+            const normalSpeed = currentSpeed / boostMultiplier;
+
+            // 重新計算反彈後的正常速度
+            ball.speedX = Math.sin(bounceAngle) * normalSpeed;
+            ball.speedY = -Math.cos(bounceAngle) * normalSpeed;
+
+            ballBoosted = false;
+            boostStatusElement.textContent = "✅ 你成功接住了加速球！";
+            setTimeout(() => {
+              if (
+                boostStatusElement.textContent === "✅ 你成功接住了加速球！"
+              ) {
+                boostStatusElement.textContent = "";
+              }
+            }, 1000);
+          } else if (ballBoosted && boostByPlayer) {
+            // 如果是玩家自己加速的球，正常反彈但保持加速狀態
+            // 球已經被加速過了，這次碰撞不改變加速狀態
+          }
+        }
+
+        // 電腦橫桿碰撞（半橢圓形）
+        if (
+          ball.y - ball.radius <= computer.y + computer.height &&
+          ball.y + ball.radius >= computer.y &&
+          ball.x >= computer.x &&
+          ball.x <= computer.x + computer.width
+        ) {
+          // 計算碰撞點相對於橫桿中心的位置
+          const paddleCenterX = computer.x + computer.width / 2;
+          const relativeHitX = ball.x - paddleCenterX;
+          const normalizedHit = relativeHitX / (computer.width / 2); // -1 到 1
+
+          // 根據半橢圓形狀計算反彈角度
+          const bounceAngle = (normalizedHit * Math.PI) / 3; // 最大60度角
+          const speed = Math.sqrt(
+            ball.speedX * ball.speedX + ball.speedY * ball.speedY
+          );
+
+          ball.speedX = Math.sin(bounceAngle) * speed;
+          ball.speedY = Math.cos(bounceAngle) * speed; // 確保向下彈
+
+          // 只有當球是玩家加速的時候，電腦碰到才恢復速度
+          if (ballBoosted && boostByPlayer) {
+            // 計算當前速度並恢復到正常速度
+            const currentSpeed = Math.sqrt(
+              ball.speedX * ball.speedX + ball.speedY * ball.speedY
+            );
+            const normalSpeed = currentSpeed / boostMultiplier;
+
+            // 重新計算反彈後的正常速度
+            ball.speedX = Math.sin(bounceAngle) * normalSpeed;
+            ball.speedY = Math.cos(bounceAngle) * normalSpeed;
+
+            ballBoosted = false;
+            boostStatusElement.textContent = "😤 電腦接住了你的加速球！";
+            setTimeout(() => {
+              if (
+                boostStatusElement.textContent === "😤 電腦接住了你的加速球！"
+              ) {
+                boostStatusElement.textContent = "";
+              }
+            }, 1000);
+          } else if (ballBoosted && !boostByPlayer) {
+            // 如果是電腦加速的球，正常反彈但保持加速狀態
+            // 球已經被加速過了，這次碰撞不改變加速狀態
+          }
+        }
+
+        // 得分檢測
+        if (ball.y <= 0) {
+          // 玩家得分，電腦失分
+          playerScore++;
+          playerScoreElement.textContent = playerScore;
+          serverIsPlayer = false; // 輸的一方（電腦）發球
+          pauseAfterScore();
+          checkGameEnd();
+        } else if (ball.y >= canvas.height) {
+          // 電腦得分，玩家失分
+          computerScore++;
+          computerScoreElement.textContent = computerScore;
+          serverIsPlayer = true; // 輸的一方（玩家）發球
+          pauseAfterScore();
+          checkGameEnd();
+        }
+      }
+
+      // 得分後暫停遊戲
+      function pauseAfterScore() {
+        gamePaused = true;
+        canStartNextRound = false;
+        pauseStartTime = Date.now();
+
+        // 停止球的移動
+        ball.speedX = 0;
+        ball.speedY = 0;
+
+        // 更新狀態顯示
+        updatePauseStatus();
+
+        // 1秒後允許開始下一局
+        setTimeout(() => {
+          if (gamePaused && gameRunning) {
+            canStartNextRound = true;
+            updatePauseStatus();
+          }
+        }, 1000);
+      }
+
+      // 開始下一局
+      function startNextRound() {
+        gamePaused = false;
+        canStartNextRound = false;
+        prepareNextServe();
+      }
+
+      // 更新暫停狀態顯示
+      function updatePauseStatus() {
+        if (gamePaused && gameRunning) {
+          if (canStartNextRound) {
+            servingStatusElement.textContent = "⏸️ 按空白鍵開始下一局";
+          } else {
+            servingStatusElement.textContent =
+              "⏸️ 遊戲暫停中...（1秒後可繼續）";
+          }
+        }
+      }
+
+      // 準備下一次發球
+      function prepareNextServe() {
+        waitingForServe = true;
+        ballBoosted = false; // 重置加速狀態
+        boostByPlayer = false; // 重置加速者記錄
+        computerTargetHitPoint = null; // 重置電腦期望擊球點
+        computerInDefensePhase = false; // 重置電腦防守階段
+        ball.speedX = 0;
+        ball.speedY = 0;
+
+        // 重置橫桿動畫狀態和位置
+        playerPaddleAnimating = false;
+        computerPaddleAnimating = false;
+        paddleAnimationProgress = 0;
+        player.y = playerPaddleOriginalY;
+        computer.y = computerPaddleOriginalY;
+
+        // 球會在updateBall中跟著橫桿移動，所以這裡不需要設定位置
+        updateServingStatus();
+      }
+
+      // 檢查遊戲結束
+      function checkGameEnd() {
+        if (playerScore >= 5) {
+          gameRunning = false;
+          gameStatusTitleElement.textContent = "🎉 恭喜！你贏了！";
+          gameStatusElement.style.display = "flex";
+          setDifficultyEnabled(true); // 遊戲結束時重新啟用難度選擇
+        } else if (computerScore >= 5) {
+          gameRunning = false;
+          gameStatusTitleElement.textContent = "😔 電腦贏了！再試一次吧！";
+          gameStatusElement.style.display = "flex";
+          setDifficultyEnabled(true); // 遊戲結束時重新啟用難度選擇
+        }
+      }
+
+      // 重新開始遊戲
+      function restartGame() {
+        gameRunning = true;
+        gamePaused = false;
+        canStartNextRound = false;
+        playerScore = 0;
+        computerScore = 0;
+        playerScoreElement.textContent = "0";
+        computerScoreElement.textContent = "0";
+        gameStatusElement.style.display = "none";
+        restartBtn.style.display = "none";
+        boostStatusElement.textContent = "";
+        setDifficultyEnabled(true); // 重新開始時啟用難度選擇
+
+        // 重置位置
+        player.x = canvas.width / 2 - 60;
+        computer.x = canvas.width / 2 - 60;
+        player.y = playerPaddleOriginalY;
+        computer.y = computerPaddleOriginalY;
+
+        // 重置動畫狀態
+        playerPaddleAnimating = false;
+        computerPaddleAnimating = false;
+        paddleAnimationProgress = 0;
+
+        // 重新開始時由玩家發球
+        serverIsPlayer = true;
+        ballBoosted = false;
+        boostByPlayer = false;
+        computerTargetHitPoint = null; // 重置電腦期望擊球點
+        computerInDefensePhase = false; // 重置電腦防守階段
+        boostParticles = []; // 清除粒子效果
+        prepareNextServe();
+      }
+
+      // 渲染函數 - 聚合所有繪圖操作
+      function render() {
+        // 清除畫布
+        ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // 繪製遊戲元素
+        drawPaddle(player);
+        drawPaddle(computer);
+        drawBall();
+
+        // 繪製粒子效果
+        updateAndDrawParticles();
+      }
+
+      // 遊戲主循環
+      function gameLoop(currentTime) {
+        // 計算幀時間
+        if (lastTime === 0) lastTime = currentTime;
+        let frameTime = currentTime - lastTime;
+        lastTime = currentTime;
+
+        // 限制最大幀時間以防止螺旋死亡
+        frameTime = Math.min(frameTime, MAX_FRAME_TIME);
+
+        // 累加時間
+        accumulator += frameTime;
+
+        // 固定時間步長更新
+        while (accumulator >= FIXED_TIMESTEP) {
+          if (gameRunning && !gamePaused) {
+            updatePlayer();
+            updateComputer();
+            updateBall();
+          }
+          // 動畫更新（無論遊戲是否暫停都要執行）
+          updatePaddleAnimations();
+          accumulator -= FIXED_TIMESTEP;
+        }
+
+        // 渲染（每幀都渲染，但邏輯更新是固定頻率）
+        render();
+
+        // FPS計算
+        frameCount++;
+        fpsTime += frameTime;
+        if (fpsTime >= 1000) {
+          currentFPS = Math.round((frameCount * 1000) / fpsTime);
+          fpsCounterElement.textContent = `FPS: ${currentFPS}`;
+          frameCount = 0;
+          fpsTime = 0;
+        }
+
+        requestAnimationFrame(gameLoop);
+      }
+
+      // 初始化遊戲
+      updateServingStatus();
+
+      // 開始遊戲
+      requestAnimationFrame(gameLoop);
+    </script>
+  </body>
+</html>
